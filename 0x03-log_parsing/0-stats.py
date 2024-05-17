@@ -8,7 +8,7 @@ print these from beginning: number of lines by status code
 possible status codes: 200, 301, 400, 401, 404, 405, and 500
 if status code isn't an integer, do not print it
 format: <status code>: <number>
-Status code must be printed in ascending order.
+Status code must be printed in ascending order
 """
 import sys
 
