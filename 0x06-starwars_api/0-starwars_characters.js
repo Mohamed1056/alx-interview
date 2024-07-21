@@ -1,36 +1,41 @@
 #!/usr/bin/node
-
-const request = require('request');
-
-const req = (arr, i) => {
-  if (i === arr.length) return;
-  request(arr[i], (err, response, body) => {
-    if (err) {
-      console.error(err);
-    } else {
-      console.log(JSON.parse(body).name);
-      req(arr, i + 1);
-    }
+/**
+ * Wrapper function for request object that allows it
+ * to work with async and await
+ * @param   {String} url - site url
+ * @returns {Promise}    - promise object that resolves
+ *                         with parsed JSON response
+ *                         and rejects with the request error.
+ */
+function makeRequest (url) {
+  const request = require('request');
+  return new Promise((resolve, reject) => {
+    request.get(url, (error, response, body) => {
+      if (error) reject(error);
+      else resolve(JSON.parse(body));
+    });
   });
-};
-
-const movieId = process.argv[2];
-if (!movieId) {
-  console.error('Please provide a Movie ID as a positional argument');
-  process.exit(1);
 }
 
-const apiUrl = `https://swapi-api.hbtn.io/api/films/${movieId}`;
+/**
+ * Entry point - makes requests to Star Wars API
+ * for movie info based movie ID passed as a CLI parameter.
+ * Retrieves movie character info then prints their names
+ * in order of appearance in the initial response.
+ */
+async function main () {
+  const args = process.argv;
 
-request(apiUrl, (err, response, body) => {
-  if (err) {
-    console.error(err);
-    return;
+  if (args.length < 3) return;
+
+  const movieUrl = 'https://swapi-api.alx-tools.com/api/films/' + args[2];
+  const movie = await makeRequest(movieUrl);
+
+  if (movie.characters === undefined) return;
+  for (const characterUrl of movie.characters) {
+    const character = await makeRequest(characterUrl);
+    console.log(character.name);
   }
-  try {
-    const chars = JSON.parse(body).characters;
-    req(chars, 0);
-  } catch (parseErr) {
-    console.error('Error parsing JSON:', parseErr);
-  }
-});
+}
+
+main();
